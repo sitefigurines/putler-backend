@@ -7,6 +7,7 @@ const certificateControler = require("../controllers/certificate-controller");
 const router = new Router();
 const { body } = require("express-validator");
 const authMiddleware = require("../middlewares/auth-middleware");
+const renderController = require("../controllers/render-controller");
 
 router.post(
   "/registration",
@@ -56,5 +57,8 @@ router.post(
   authMiddleware,
   certificateControler.useCertificate
 );
+
+// keep render onlone
+router.get("/keep-server-online", renderController.keepServerOnline);
 
 module.exports = router;
