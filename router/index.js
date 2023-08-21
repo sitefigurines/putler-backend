@@ -30,6 +30,12 @@ router.post(
 );
 router.post("/payment/callback", paymentController.saveCallback);
 router.post("/payment/status", paymentController.paymentStatus);
+router.post(
+  "/payment/addOrderQueue",
+  authMiddleware,
+  paymentController.addOrderQueue
+);
+
 router.post("/pay", paymentController.createForm);
 router.post("/user/addtocart", authMiddleware, cartController.addToCart);
 router.post(
