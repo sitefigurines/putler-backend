@@ -147,6 +147,14 @@ class PaymentControler {
             }
           } else if (userOrder.orderType == "topup") {
             let user = await userModel.findOne({ _id: userOrder.userId });
+            let userBalance = user.moneyTokens;
+            let replenishmentSum = userOrder.orderInformation.topupSum;
+            let newBalance = userBalance + replenishmentSum;
+
+            await userModel.updateOne(
+              { _id: userOrder.userId },
+              { moneyTokens: newBalance }
+            );
 
             const TOKEN = "6216984562:AAE__p0j6GBihJBE4XwlhJDYixxlOCkNpUA";
             const CHAT_ID = "-1001939451453";
