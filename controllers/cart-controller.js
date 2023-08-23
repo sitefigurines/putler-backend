@@ -36,6 +36,15 @@ class CartControler {
       next(e);
     }
   }
+  async clearUserCart(req, res, next) {
+    try {
+      let cart = await cartService.clearUserCart(req.headers.authorization);
+      return res.json(cart);
+    } catch (e) {
+      next(e);
+    }
+  }
+
   async moreAmount(req, res, next) {
     try {
       const { articulus } = req.body;

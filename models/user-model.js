@@ -11,6 +11,7 @@ const UserSchema = new Schema({
   },
   moneyTokens: { type: Number },
   userCart: { type: Array },
+  userOrders: { type: Array },
 });
 
 module.exports = model("User", UserSchema);

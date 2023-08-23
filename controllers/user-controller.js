@@ -130,6 +130,20 @@ class UserController {
       next(e);
     }
   }
+  async getLastOrder(req, res, next) {
+    try {
+      const userId = req.user.id;
+
+      let lastOrder = await userService.getLastOrder(userId);
+      if (!lastOrder) {
+        throw ApiError.BadRequest("Замовлення не знайдено");
+      }
+
+      return res.json(lastOrder);
+    } catch (e) {
+      next(e);
+    }
+  }
 }
 
 module.exports = new UserController();

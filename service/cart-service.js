@@ -17,7 +17,7 @@ class CartService {
     let userCart = user.userCart;
     let flag = false;
     let amount;
-    userCart.forEach((cartItem) => {
+    for (const cartItem of userCart) {
       if (cartItem.articulus == articulus && cartItem.discount == false) {
         flag = true;
         const indexOfElement = userCart.indexOf(cartItem);
@@ -28,9 +28,10 @@ class CartService {
           discount: false,
         };
         user.userCart.splice(indexOfElement, 1, newElement);
-        user.save();
+        await user.save();
       }
-    });
+    }
+
     if (!flag) {
       amount = 1;
       user.userCart.push({
@@ -38,7 +39,7 @@ class CartService {
         amount: amount,
         discount: false,
       });
-      user.save();
+      await user.save();
     }
     return { goods: goods, amount: amount, discount: false };
   }
@@ -66,7 +67,7 @@ class CartService {
         `товар за артикулом ${articulus} в корзині не знайдено `
       );
     }
-    user.save();
+    await user.save();
     return userCart;
   }
   async getCart(token) {
@@ -93,13 +94,28 @@ class CartService {
     }
     return response;
   }
+
+  async clearUserCart(token) {
+    const accessToken = token.split(" ")[1];
+    const userData = tokenService.validateAccessToken(accessToken);
+    // console.log(userData);
+
+    const user = await UserModel.updateOne(
+      { _id: userData.id },
+      { userCart: [] }
+    );
+
+    // user.userCart = [];
+    // await user.save();
+    return user.userCart;
+  }
   async moreAmount(articulus, token) {
     const accessToken = token.split(" ")[1];
     const userData = tokenService.validateAccessToken(accessToken);
     const user = await UserModel.findById(userData.id);
     let userCart = user.userCart;
     let newAmount;
-    userCart.forEach((cartItem) => {
+    for (const cartItem of userCart) {
       if (cartItem.articulus == articulus && cartItem.discount == false) {
         const indexOfElement = userCart.indexOf(cartItem);
         newAmount = cartItem.amount + 1;
@@ -109,9 +125,10 @@ class CartService {
           discount: false,
         };
         user.userCart.splice(indexOfElement, 1, newElement);
-        user.save();
+        await user.save();
       }
-    });
+    }
+
     return newAmount;
   }
 
@@ -121,7 +138,7 @@ class CartService {
     const user = await UserModel.findById(userData.id);
     let userCart = user.userCart;
     let newAmount;
-    userCart.forEach((cartItem) => {
+    for (const cartItem of userCart) {
       if (cartItem.articulus == articulus && cartItem.discount == false) {
         const indexOfElement = userCart.indexOf(cartItem);
         newAmount = cartItem.amount - 1;
@@ -132,10 +149,11 @@ class CartService {
             discount: false,
           };
           user.userCart.splice(indexOfElement, 1, newElement);
-          user.save();
+          await user.save();
         } else throw new ApiError(400, "неможливо зменшити к-ть елементів < 1");
       }
-    });
+    }
+
     return newAmount;
   }
 

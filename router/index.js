@@ -45,11 +45,14 @@ router.post(
 );
 router.post("/user/getiteminfo", cartController.getGoodsInfo);
 router.get("/user/usercart", authMiddleware, cartController.getCart);
+router.get("/user/clearusercart", authMiddleware, cartController.clearUserCart);
 router.post("/user/moreamount", authMiddleware, cartController.moreAmount);
 router.post("/user/lessamount", authMiddleware, cartController.lessAmount);
 router.get("/user/checkSum", authMiddleware, cartController.countCost);
 router.get("/user/checkHalfSum", authMiddleware, cartController.countHalfCost);
 router.post("/user/wheel-of-fortune", authMiddleware, fortuneController.play);
+router.get("/user/getLastOrder", authMiddleware, userController.getLastOrder);
+
 router.get("/getorderid", authMiddleware, cartController.getOrderId);
 
 // sertificats
@@ -63,6 +66,12 @@ router.post(
   authMiddleware,
   certificateControler.useCertificate
 );
+
+// page
+
+router.post("/open-success-order-page", paymentController.openSuccesPage);
+router.post("/open-payment-error-order-page", paymentController.openErrorPage);
+router.post("/open-success-topup-page", paymentController.openSuccesTopupPage);
 
 // keep render onlone
 router.get("/keep-server-online", renderController.keepServerOnline);

@@ -123,6 +123,17 @@ class UserService {
     return user.email;
   }
 
+  async getLastOrder(userId) {
+    const user = await UserModel.findOne({ _id: userId });
+
+    let lastOrder = user.userOrders[0];
+    user.userOrders = [];
+    user.save();
+    if (lastOrder) {
+      return lastOrder;
+    } else return null;
+  }
+
   async topupUsersMoney(req, res) {
     const authorizationHeader = req.headers.authorization;
     const accessToken = authorizationHeader.split(" ")[1];
