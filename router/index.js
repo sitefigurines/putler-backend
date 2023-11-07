@@ -30,11 +30,7 @@ router.post(
 );
 router.post("/payment/callback", paymentController.saveCallback);
 router.post("/payment/status", paymentController.paymentStatus);
-router.post(
-  "/payment/addOrderQueue",
-  authMiddleware,
-  paymentController.addOrderQueue
-);
+router.post("/payment/addOrderQueue", paymentController.addOrderQueue);
 
 router.post("/pay", paymentController.createForm);
 router.post("/user/addtocart", authMiddleware, cartController.addToCart);
@@ -51,21 +47,32 @@ router.post("/user/lessamount", authMiddleware, cartController.lessAmount);
 router.get("/user/checkSum", authMiddleware, cartController.countCost);
 router.get("/user/checkHalfSum", authMiddleware, cartController.countHalfCost);
 router.post("/user/wheel-of-fortune", authMiddleware, fortuneController.play);
-router.get("/user/getLastOrder", authMiddleware, userController.getLastOrder);
+router.post("/user/getLastOrder", userController.getLastOrder);
 
-router.get("/getorderid", authMiddleware, cartController.getOrderId);
+router.get("/getorderid", cartController.getOrderId);
+
+// начало новой еры кода
+router.get("/goods/getallgoods", cartController.getAllGoods);
+
+router.post("/shop/getprice", cartController.getPriceDependingPayment);
 
 // sertificats
-router.post(
-  "/certificate/register",
-  authMiddleware,
-  certificateControler.registerCertificate
-);
-router.post(
-  "/certificate/use",
-  authMiddleware,
-  certificateControler.useCertificate
-);
+router.post("/certificate/register", certificateControler.registerCertificate);
+router.post("/certificate/use", certificateControler.useCertificate);
+
+router.post("/certificate/getData", certificateControler.getCertificateData);
+router.post("/certificate/submit", certificateControler.getCheckAndSubmit);
+
+// create local user id
+router.get("/user/getUserLocalId", userController.createUserLocalId);
+
+// зкидання паролю в юзера
+
+router.post("/user/changePassRequest", userController.changePassRequest);
+
+router.get("/user/changePassword/:link", userController.changePassCallback);
+
+router.post("/user/changePassword", userController.changePassword);
 
 // page
 

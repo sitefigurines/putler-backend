@@ -1,10 +1,15 @@
 const UserModel = require("../models/user-model");
+const ExistingUserIdModel = require("../models/existing-userId");
+
 const bcrypt = require("bcrypt");
 const uuid = require("uuid");
 const mailService = require("./mail-service");
 const tokenService = require("./token-service");
+
 const UserDto = require("../dtos/user-dto");
 const ApiError = require("../exceptions/api-error");
+const orderCandidates = require("../models/order-candidates");
+const userModel = require("../models/user-model");
 
 class UserService {
   async registration(email, password) {
@@ -64,6 +69,47 @@ class UserService {
     return token;
   }
 
+  async changePassRequest(email) {
+    let user = await UserModel.findOne({ email });
+    if (!user) {
+      throw ApiError.BadRequest(
+        `Пошту ${email} не знайдено в базі. Перевірте коректність і спробуйте ще раз`
+      );
+    }
+    const resetLink = uuid.v4(); // v34fa-asfasf-142saf-sa-asf
+    const resetLinkExp = Date.now() + 60 * 60 + 1000;
+    user.resetToken = resetLink;
+    user.resetTokenExp = resetLinkExp;
+    await user.save();
+
+    await mailService.sendResetPasswordLetter(
+      email,
+      `${process.env.API_URL}/api/user/changePassword/${resetLink}`
+    );
+
+    return { message: "OK", status: 200 };
+  }
+
+  async changePassword(resetToken, newPassword) {
+    let userCandidate = await userModel.findOne({
+      resetToken: resetToken,
+    });
+
+    if (!userCandidate || userCandidate.resetTokenExp > Date.now()) {
+      return res.redirect(`${process.env.CLIENT_URL}`);
+    }
+
+    let hashPassword = await bcrypt.hash(newPassword, 3);
+
+    userCandidate.password = hashPassword;
+
+    userCandidate.resetToken = null;
+    userCandidate.resetTokenExp = null;
+
+    await userCandidate.save();
+
+    return { message: "password changed", status: 200 };
+  }
   // async refresh(refreshToken) {
   //   if (!refreshToken) {
   //     throw ApiError.UnauthorizedError();
@@ -87,13 +133,16 @@ class UserService {
     }
 
     const userData = tokenService.validateRefreshToken(refreshToken);
-
+    console.log(userData);
     const tokenFromDb = await tokenService.findToken(refreshToken);
 
     if (!userData || !tokenFromDb) {
       throw ApiError.UnauthorizedError();
     }
     const user = await UserModel.findById(userData.id);
+    if (user.password != userData.password) {
+      throw ApiError.UnauthorizedError();
+    }
     const userDto = new UserDto(user);
     const tokens = tokenService.generateTokens({ ...userDto });
 
@@ -123,15 +172,38 @@ class UserService {
     return user.email;
   }
 
-  async getLastOrder(userId) {
-    const user = await UserModel.findOne({ _id: userId });
+  async getLastOrder(token, LocalUserID) {
+    const accessToken = token.split(" ")[1];
+    if (accessToken != "null") {
+      const userData = tokenService.validateAccessToken(accessToken);
+      const user = await UserModel.findById(userData.id);
+      let userID = user.id;
 
-    let lastOrder = user.userOrders[0];
-    user.userOrders = [];
-    user.save();
-    if (lastOrder) {
-      return lastOrder;
-    } else return null;
+      let userOrder = await orderCandidates.findOne({ userId: userID });
+      if (userOrder) {
+        let orderObject = userOrder.userOrder;
+        await orderCandidates.findOneAndDelete({ userId: userID });
+        return orderObject;
+      } else {
+        return null;
+      }
+    } else {
+      if (!LocalUserID) {
+        throw ApiError.BadRequest(
+          400,
+          "Останнє заиовлення не знайдено, для уточнення інформації зверніться в підтримку!"
+        );
+      }
+
+      let userOrder = await orderCandidates.findOne({ userId: LocalUserID });
+      if (userOrder) {
+        let orderObject = userOrder.userOrder;
+        await orderCandidates.findOneAndDelete({ userId: LocalUserID });
+        return orderObject;
+      } else {
+        return null;
+      }
+    }
   }
 
   async topupUsersMoney(req, res) {
@@ -169,6 +241,34 @@ class UserService {
     }
 
     return userMoney;
+  }
+
+  async createUserLocalId(req, res) {
+    let userID = 0;
+    function generateID() {
+      const chars = "0123456789abcdef";
+      let id = "";
+
+      for (let i = 0; i < 24; i++) {
+        id += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+
+      return id;
+    }
+
+    // Пример использования функции для генерации ID
+    userID = generateID();
+    console.log(userID);
+    // перевірка чи є такий айді в базі
+    let existingId = await ExistingUserIdModel.findOne({ userID: userID });
+    if (existingId) {
+      await this.createUserLocalId();
+      return;
+    }
+    console.log("not fount and returned");
+
+    await ExistingUserIdModel.create({ userID: userID });
+    return userID;
   }
 }
 

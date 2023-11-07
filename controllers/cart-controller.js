@@ -5,9 +5,10 @@ const cartService = require("../service/cart-service");
 class CartControler {
   async addToCart(req, res, next) {
     try {
-      const { articulus } = req.body;
+      const { articulus, discount } = req.body;
       let cartItem = await cartService.addToCart(
         articulus,
+        discount,
         req.headers.authorization
       );
       return res.json(cartItem);
@@ -99,6 +100,39 @@ class CartControler {
     try {
       let orderId = await cartService.getOrderId();
       return res.json(orderId);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  async getAllGoods(req, res, next) {
+    try {
+      let goods = await cartService.getAllGoods();
+      return res.json(goods);
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  async getPriceDependingPayment(req, res, next) {
+    try {
+      // const userId = req.user.id;
+      let token = req.headers.authorization;
+
+      console.log(token);
+      let { paymentType, currency, cart } = req.body;
+
+      if (!paymentType || !currency || !cart) {
+        throw ApiError.BadRequest(400, "Bad fields");
+      } else {
+        let price = await cartService.getPriceDependingPayment(
+          paymentType,
+          currency,
+          cart,
+          token
+        );
+        return res.json(price);
+      }
     } catch (e) {
       next(e);
     }
