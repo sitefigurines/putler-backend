@@ -214,8 +214,8 @@ class PaymentControler {
             );
 
             const TOKEN = "6216984562:AAE__p0j6GBihJBE4XwlhJDYixxlOCkNpUA";
-            const CHAT_ID = "-1002109394095"; // мій тестовий канал
-            //  const CHAT_ID = "-1001939451453";
+            const CHAT_ID_DEV = "-1002109394095"; // мій тестовий канал
+            const CHAT_ID = "-1001939451453";
             const URI_API = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
 
             let message = `<b> Поповнення рахунку!</b>\n`;
@@ -233,6 +233,14 @@ class PaymentControler {
                 orderId: ReqData.shopOrderNumber,
               });
             }
+
+            try {
+              await axios.post(URI_API, {
+                chat_id: CHAT_ID_DEV,
+                parse_mode: "html",
+                text: message,
+              });
+            } catch (error) {}
           }
         }
       }
