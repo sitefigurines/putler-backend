@@ -11,7 +11,7 @@ class CartService {
   async getAllGoods() {
     const goods = await GoodsModel.find();
     if (!goods) {
-      throw new ApiError(404, { reason: "EMPTY__GOODS" });
+      throw ApiError.BadRequest({ reason: "EMPTY__GOODS" });
     }
     return goods;
   }
@@ -20,7 +20,7 @@ class CartService {
     const goods = await GoodsModel.findOne({ articulus: articulus });
     console.log(goods);
     if (!goods) {
-      throw new ApiError(404, `товар за артикулом ${articulus} не знайдено`);
+      throw ApiError.BadRequest(`товар за артикулом ${articulus} не знайдено`);
     }
     const accessToken = token.split(" ")[1];
     const userData = tokenService.validateAccessToken(accessToken);
